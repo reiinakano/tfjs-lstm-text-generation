@@ -2,7 +2,8 @@ import * as tf from '@tensorflow/tfjs';
 import indices_char from './indices_char';
 import char_indices from './char_indices';
 
-const seed = "The stupidity of man knows no bounds";
+const INPUT_LENGTH = 40;
+const CHARS_TO_GENERATE = 200;
 
 /**
  * Main application to start on window load
@@ -15,13 +16,14 @@ class Main {
   constructor() {
     // Initiate variables
     this.generatedSentence = document.getElementById("generated-sentence");
+    this.inputSeed = document.getElementById("seed");
     this.generateButton = document.getElementById("generate-button");
     this.generateButton.onclick = () => {
       this.charsGenerated = 0;
-      this.generatedSentence.innerText = seed;
+      this.generatedSentence.innerText = this.inputSeed.value;
       this.generateButton.disabled = true;
-      this.generateButton.innerText = "Generating text.."
-      this.generateText(seed);
+      this.generateButton.innerText = "Pay attention to Nietzsche's words"
+      this.generateText(this.inputSeed.value);
     }
     tf.loadModel('lstm/model.json').then((model) => {
       this.model = model;
@@ -36,7 +38,7 @@ class Main {
   }
 
   generateText(text) {
-    if (this.charsGenerated > 200) {
+    if (this.charsGenerated > CHARS_TO_GENERATE) {
       this.generateButton.disabled = false;
       this.generateButton.innerText = "Generate new text";
       return;
@@ -44,7 +46,7 @@ class Main {
     const index = tf.tidy(() => {
       const input = this.convert(text);
       const prediction = this.model.predict(input).squeeze();
-      return prediction.argMax();
+      return this.sample(prediction);
     })
     index.data().then((indexData) => {
       this.charsGenerated += 1;
@@ -55,17 +57,30 @@ class Main {
     });
   }
 
+  sample(prediction) {
+    return tf.tidy(() => {
+      prediction = prediction.log();
+      const diversity = tf.scalar(1.0);
+      prediction = prediction.div(diversity);
+      prediction = prediction.exp();
+      prediction = prediction.div(prediction.sum());
+      prediction = prediction.mul(tf.randomNormal(prediction.shape));
+      return prediction.argMax();
+    });
+  }
+
   convert(sentence) {
     console.log(`converting ${sentence}`);
     // TODO: Handle OOV characters
-    if (sentence.length < 40) {
-      sentence = sentence.padStart(40);
-    } else if (sentence.length > 40) {
-      sentence = sentence.substring(sentence.length - 40);
+    sentence = sentence.toLowerCase();
+    if (sentence.length < INPUT_LENGTH) {
+      sentence = sentence.padStart(INPUT_LENGTH);
+    } else if (sentence.length > INPUT_LENGTH) {
+      sentence = sentence.substring(sentence.length - INPUT_LENGTH);
     }
     console.log(`converted to ${sentence}`);
-    const buffer = tf.buffer([1, 40, Object.keys(indices_char).length]);
-    for (let i = 0; i < 40; i++) {
+    const buffer = tf.buffer([1, INPUT_LENGTH, Object.keys(indices_char).length]);
+    for (let i = 0; i < INPUT_LENGTH; i++) {
       let char = sentence.charAt(i)
       buffer.set(1, 0, i, char_indices[char]);
     }
