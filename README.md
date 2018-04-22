@@ -1,4 +1,4 @@
-This repository contains a demo written with TensorFlow.js that lets users generate their own Nietschze quote. An LSTM is trained on a database of Nietschze's writings and attempts to generate Nietschze-like quotes.
+This repository contains a demo written with TensorFlow.js that lets users generate their own Nietschze quote. An LSTM [written in Keras](https://github.com/keras-team/keras/blob/master/examples/lstm_text_generation.py) is trained on a database of Nietschze's writings and attempts to generate Nietschze-like quotes. The Keras model is then ported to TensorFlow.js.
 
 You can run it immediately in your browser by going to https://reiinakano.github.io/tfjs-lstm-text-generation/.
 
