@@ -2,7 +2,7 @@ import * as tf from '@tensorflow/tfjs';
 import indices_char from './indices_char';
 import char_indices from './char_indices';
 
-const seed = "The wisdom of man";
+const seed = "The stupidity of man knows no bounds";
 
 /**
  * Main application to start on window load
@@ -14,9 +14,15 @@ class Main {
    */
   constructor() {
     // Initiate variables
-    this.generateButton = document.getElementById("generate-button");
-    this.generateButton.onclick = () => this.generateText();
     this.generatedSentence = document.getElementById("generated-sentence");
+    this.generateButton = document.getElementById("generate-button");
+    this.generateButton.onclick = () => {
+      this.charsGenerated = 0;
+      this.generatedSentence.innerText = seed;
+      this.generateButton.disabled = true;
+      this.generateButton.innerText = "Generating text.."
+      this.generateText(seed);
+    }
     tf.loadModel('lstm/model.json').then((model) => {
       this.model = model;
       this.start();
@@ -29,30 +35,24 @@ class Main {
     this.generateButton.disabled = false;
   }
 
-  generateText() {
-    const prediction = tf.tidy(() => {
-      const input = this.convert(seed);
-      return this.model.predict(input).squeeze();
-      const index = this.sample(prediction);
-      console.log(index);
-    })
-    prediction.print();
-    this.sample(prediction).then((index) => console.log(index[0]));
-    prediction.dispose();
-  }
-
-  sample(prediction) {
+  generateText(text) {
+    if (this.charsGenerated > 200) {
+      this.generateButton.disabled = false;
+      this.generateButton.innerText = "Generate new text";
+      return;
+    }
     const index = tf.tidy(() => {
-      // TODO: Actually make this matter
-      prediction = prediction.log();
-      let diversity = tf.scalar(1.0);
-      prediction = prediction.div(diversity);
-      prediction = prediction.exp();
-      prediction = prediction.div(prediction.sum());
+      const input = this.convert(text);
+      const prediction = this.model.predict(input).squeeze();
       return prediction.argMax();
     })
-    index.print();
-    return index.data();
+    index.data().then((indexData) => {
+      this.charsGenerated += 1;
+      index.dispose();
+      console.log(indexData[0]);
+      this.generatedSentence.innerText += indices_char[indexData[0]];
+      tf.nextFrame().then(() => this.generateText(this.generatedSentence.innerText))
+    });
   }
 
   convert(sentence) {
@@ -70,7 +70,6 @@ class Main {
       buffer.set(1, 0, i, char_indices[char]);
     }
     const input = buffer.toTensor();
-    input.print();
     return input;
   }
 }
