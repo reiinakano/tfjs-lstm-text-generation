@@ -36,7 +36,6 @@ class Main {
    * Sets up UI elements for generating text.
    */
   start() {
-    console.log('starting...');
     this.generateButton.innerText = "Generate new text";
     this.generateButton.disabled = false;
   }
@@ -59,7 +58,6 @@ class Main {
     index.data().then((indexData) => {
       this.charsGenerated += 1;
       index.dispose();
-      console.log(indexData[0]);
       this.generatedSentence.innerText += indices_char[indexData[0]];
       tf.nextFrame().then(() => this.generateText(this.generatedSentence.innerText))
     });
@@ -84,7 +82,6 @@ class Main {
    * Converts sentence to Tensor for feeding into model.
    */
   convert(sentence) {
-    console.log(`converting ${sentence}`);
     sentence = sentence.toLowerCase();
     sentence = sentence.split('').filter(x => x in char_indices).join('');
     if (sentence.length < INPUT_LENGTH) {
@@ -92,7 +89,6 @@ class Main {
     } else if (sentence.length > INPUT_LENGTH) {
       sentence = sentence.substring(sentence.length - INPUT_LENGTH);
     }
-    console.log(`converted to ${sentence}`);
     const buffer = tf.buffer([1, INPUT_LENGTH, Object.keys(indices_char).length]);
     for (let i = 0; i < INPUT_LENGTH; i++) {
       let char = sentence.charAt(i)
