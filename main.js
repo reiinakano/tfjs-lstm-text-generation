@@ -31,12 +31,20 @@ class Main {
     });
   }
 
+  /**
+   * Called after model has finished loading. 
+   * Sets up UI elements for generating text.
+   */
   start() {
     console.log('starting...');
     this.generateButton.innerText = "Generate new text";
     this.generateButton.disabled = false;
   }
 
+  /**
+   * Predicts next character from given text and updates UI accordingly.
+   * This is the main tfjs loop.
+   */
   generateText(text) {
     if (this.charsGenerated > CHARS_TO_GENERATE) {
       this.generateButton.disabled = false;
@@ -57,6 +65,9 @@ class Main {
     });
   }
 
+  /**
+   * Randomly samples next character weighted by model prediction.
+   */
   sample(prediction) {
     return tf.tidy(() => {
       prediction = prediction.log();
@@ -69,10 +80,13 @@ class Main {
     });
   }
 
+  /**
+   * Converts sentence to Tensor for feeding into model.
+   */
   convert(sentence) {
     console.log(`converting ${sentence}`);
-    // TODO: Handle OOV characters
     sentence = sentence.toLowerCase();
+    sentence = sentence.split('').filter(x => x in char_indices).join('');
     if (sentence.length < INPUT_LENGTH) {
       sentence = sentence.padStart(INPUT_LENGTH);
     } else if (sentence.length > INPUT_LENGTH) {
