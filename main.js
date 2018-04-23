@@ -1,6 +1,7 @@
 import * as tf from '@tensorflow/tfjs';
 import indices_char from './indices_char';
 import char_indices from './char_indices';
+import 'babel-polyfill';
 
 const INPUT_LENGTH = 40;
 const CHARS_TO_GENERATE = 200;
@@ -19,23 +20,19 @@ class Main {
     this.inputSeed = document.getElementById("seed");
     this.generateButton = document.getElementById("generate-button");
     this.generateButton.onclick = () => {
-      this.charsGenerated = 0;
-      this.generatedSentence.innerText = this.inputSeed.value;
-      this.generateButton.disabled = true;
-      this.generateButton.innerText = "Pay attention to Nietzsche's words"
-      this.generateText(this.inputSeed.value);
+      this.generateText();
     }
     tf.loadModel('lstm/model.json').then((model) => {
       this.model = model;
-      this.start();
+      this.enableGeneration();
     });
   }
 
   /**
-   * Called after model has finished loading. 
+   * Called after model has finished loading or generating. 
    * Sets up UI elements for generating text.
    */
-  start() {
+  enableGeneration() {
     this.generateButton.innerText = "Generate new text";
     this.generateButton.disabled = false;
   }
@@ -44,23 +41,22 @@ class Main {
    * Predicts next character from given text and updates UI accordingly.
    * This is the main tfjs loop.
    */
-  generateText(text) {
-    if (this.charsGenerated > CHARS_TO_GENERATE) {
-      this.generateButton.disabled = false;
-      this.generateButton.innerText = "Generate new text";
-      return;
+  async generateText() {
+    this.generatedSentence.innerText = this.inputSeed.value;
+    this.generateButton.disabled = true;
+    this.generateButton.innerText = "Pay attention to Nietzsche's words"
+    for (let i = 0; i < CHARS_TO_GENERATE; i++) {
+      const indexTensor = tf.tidy(() => {
+        const input = this.convert(this.generatedSentence.innerText);
+        const prediction = this.model.predict(input).squeeze();
+        return this.sample(prediction);
+      })
+      const index = await indexTensor.data();
+      indexTensor.dispose();
+      this.generatedSentence.innerText += indices_char[index];
+      await tf.nextFrame();
     }
-    const index = tf.tidy(() => {
-      const input = this.convert(text);
-      const prediction = this.model.predict(input).squeeze();
-      return this.sample(prediction);
-    })
-    index.data().then((indexData) => {
-      this.charsGenerated += 1;
-      index.dispose();
-      this.generatedSentence.innerText += indices_char[indexData[0]];
-      tf.nextFrame().then(() => this.generateText(this.generatedSentence.innerText))
-    });
+    this.enableGeneration();
   }
 
   /**
