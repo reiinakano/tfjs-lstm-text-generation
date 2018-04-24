@@ -5,6 +5,7 @@ import 'babel-polyfill';
 
 const INPUT_LENGTH = 40;
 const CHARS_TO_GENERATE = 200;
+const DIVERSITY = 0.1;
 
 /**
  * Main application to start on window load
@@ -65,7 +66,7 @@ class Main {
   sample(prediction) {
     return tf.tidy(() => {
       prediction = prediction.log();
-      const diversity = tf.scalar(1.0);
+      const diversity = tf.scalar(DIVERSITY);
       prediction = prediction.div(diversity);
       prediction = prediction.exp();
       prediction = prediction.div(prediction.sum());
