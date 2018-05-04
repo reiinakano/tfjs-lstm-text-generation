@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Text Generation with TensorFlow.js</title>
+    <script src="dist/bundle.js"></script>
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+    <link rel="stylesheet" href="//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+    <link rel="stylesheet" href="//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+</head>
+<style>
+.flip {
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+}
+html, body {
+    height: 100%;
+}
+.page-wrap {
+    min-height: 100%;
+    /* equal to footer height */
+    margin-bottom: -60px; 
+}
+.page-wrap:after {
+    content: "";
+    display: block;
+}
+.site-footer, .page-wrap:after {
+    padding-top: 10px;
+    height: 50px; 
+}
+.site-footer {
+    background: #efefef;
+    text-align: center;
+}
+input {
+    text-align: center;
+}
+</style>
+<body>
+    <div class="page-wrap">
+        <div class="container"> 
+            <div class="row" style="display: inline-block; padding-top: 50px">
+                <h3 class="title" style="text-align: center">Generate an original Nietschze quote!</h3>
+                <h5 class="title" style="text-align: center">This demo uses an LSTM trained on Nietschze's writings running on TensorFlow.js.</h4>
+            </div>
+            <div class="row" style="padding-left: 40px; padding-right: 40px;">
+                <input type="text" id="seed" maxlength="40" placeholder="Give Nietschze some hint of what to talk about">
+            </div>
+            <div class="row" style="display: flex; justify-content: center; padding-top: 15px;">
+                <button id="generate-button" disabled>Loading Speech Generation model...</button>
+            </div>
+            <div class="row">
+                <blockquote>
+                    <p id="generated-sentence"></p>
+                </blockquote>
+            </div>
+        </div>
+    </div>
+    <footer class="site-footer">
+        <p>
+            <em>
+                This demo was built for the book <a href="https://github.com/backstopmedia/deep-learning-browser">Deep Learning in the Browser</a>. 
+                You can check out the full source code <a href="https://github.com/backstopmedia/deep-learning-browser">here.</a>
+            </em>
+        </p>
+    </footer>
+</body>
+</html>
