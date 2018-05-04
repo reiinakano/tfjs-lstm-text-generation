@@ -5,7 +5,7 @@ import 'babel-polyfill';
 
 const INPUT_LENGTH = 40;
 const CHARS_TO_GENERATE = 200;
-const DIVERSITY = 0.1;
+const DIVERSITY = 0.5;
 
 /**
  * Main application to start on window load
@@ -43,18 +43,20 @@ class Main {
    * This is the main tfjs loop.
    */
   async generateText() {
-    this.generatedSentence.innerText = this.inputSeed.value;
+    let generated = this.inputSeed.value;
+    this.generatedSentence.innerText = generated;
     this.generateButton.disabled = true;
     this.generateButton.innerText = "Pay attention to Nietzsche's words"
     for (let i = 0; i < CHARS_TO_GENERATE; i++) {
       const indexTensor = tf.tidy(() => {
-        const input = this.convert(this.generatedSentence.innerText);
+        const input = this.convert(generated);
         const prediction = this.model.predict(input).squeeze();
         return this.sample(prediction);
       })
       const index = await indexTensor.data();
       indexTensor.dispose();
-      this.generatedSentence.innerText += indices_char[index];
+      generated += indices_char[index];
+      this.generatedSentence.innerText = generated;
       await tf.nextFrame();
     }
     this.enableGeneration();
@@ -70,7 +72,7 @@ class Main {
       prediction = prediction.div(diversity);
       prediction = prediction.exp();
       prediction = prediction.div(prediction.sum());
-      prediction = prediction.mul(tf.randomNormal(prediction.shape));
+      prediction = prediction.mul(tf.randomUniform(prediction.shape));
       return prediction.argMax();
     });
   }
